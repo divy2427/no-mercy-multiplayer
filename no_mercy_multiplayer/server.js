@@ -112,7 +112,21 @@ function playCard(room, player, cardId, chosenColor) {
 }
 function handle(ws, msg) {
   let data; try { data=JSON.parse(msg); } catch { return; }
+  if (data.type === "ping") return ws.send(JSON.stringify({type:"pong"}));
+  if (data.type === "resume") {
+    const room = rooms.get(String(data.code || "").toUpperCase());
+    const player = room?.players.find(p => p.id === data.id && p.resumeToken === data.token);
+    if (!player) return ws.send(JSON.stringify({type:"error",code:"resume_failed",message:"Your previous room is no longer available. The server may have restarted. Create or join a new room."}));
+    const previous = player.ws;
+    player.ws = ws; player.connected = true;
+    ws.playerId = player.id; ws.roomCode = room.code;
+    if (previous && previous !== ws) previous.close(4001, "Session resumed in another connection");
+    ws.send(JSON.stringify({type:"joined",id:player.id,code:room.code,token:player.resumeToken}));
+    tell(room, player.name + " reconnected.");
+    return;
+  }
   if (data.type==="create" || data.type==="join") {
+    if (ws.playerId) return;
     const name=String(data.name||"Player").trim().slice(0,18) || "Player";
     let room;
     if (data.type==="create") {
@@ -123,16 +137,16 @@ function handle(ws, msg) {
     if (!room) return ws.send(JSON.stringify({type:"error",message:"Room not found. Check the code."}));
     if (room.status!=="lobby") return ws.send(JSON.stringify({type:"error",message:"That game has already started."}));
     if (room.players.length>=8) return ws.send(JSON.stringify({type:"error",message:"Room is full (8 players max)."}));
-    const player={id:crypto.randomUUID(),name,hand:[],ws,connected:true};
+    const player={id:crypto.randomUUID(),resumeToken:crypto.randomBytes(32).toString("hex"),name,hand:[],ws,connected:true};
     room.players.push(player); if (!room.hostId) room.hostId=player.id;
     ws.playerId=player.id; ws.roomCode=room.code;
-    ws.send(JSON.stringify({type:"joined",id:player.id,code:room.code}));
+    ws.send(JSON.stringify({type:"joined",id:player.id,code:room.code,token:player.resumeToken}));
     tell(room,`${name} joined (${room.players.length}/8).`);
     return;
   }
   const room=rooms.get(ws.roomCode);
   const player=room?.players.find(p=>p.id===ws.playerId);
-  if (!room || !player) return;
+  if (!room || !player || player.ws !== ws) return;
   if (data.type==="start") {
     if (player.id!==room.hostId) return;
     if (room.players.length<2) return tell(room,"Need at least 2 players to start.");
@@ -160,11 +174,12 @@ function removePlayer(room,id) {
   }
 }
 wss.on("connection", ws => {
+  ws.on("error", err => console.warn("WebSocket error:", err.message));
   ws.on("message", msg => handle(ws,msg));
   ws.on("close", () => {
     const room=rooms.get(ws.roomCode);
     const player=room?.players.find(p=>p.id===ws.playerId);
-    if (player) { player.connected=false; player.ws=null; tell(room,`${player.name} disconnected.`); }
+    if (player && player.ws === ws) { player.connected=false; player.ws=null; tell(room,`${player.name} disconnected.`); }
   });
 });
 const port=process.env.PORT || 3000;
