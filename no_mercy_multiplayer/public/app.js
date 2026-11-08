@@ -4,28 +4,98 @@ const colors = ['red', 'blue', 'green', 'yellow'];
 const faces = ['😎', '😏', '🤩', '🦊', '🐼', '🤠', '🦁', '🐸'];
 const palettes = ['violet', 'coral', 'mint'];
 function error(message = '') { $('error').textContent = message; $('error').classList.toggle('hidden', !message); }
+let session = null, connectionReady = false, reconnectTimer = null, reconnectAttempts = 0, connectPromise = null, lastSeen = Date.now();
+try { session = JSON.parse(sessionStorage.getItem('no-mercy-session') || 'null'); } catch {}
+function saveSession(value) {
+  session = value;
+  try { if (value) sessionStorage.setItem('no-mercy-session', JSON.stringify(value)); else sessionStorage.removeItem('no-mercy-session'); } catch {}
+}
+function disableActions() {
+  connectionReady = false;
+  $('create').disabled = $('join').disabled = true;
+  $('draw').disabled = $('deck').disabled = $('start').disabled = true;
+  document.querySelectorAll('#hand button').forEach(button => button.disabled = true);
+  if ($('colorPicker').open) $('colorPicker').close();
+}
+function resetRoom(message = '') {
+  clearTimeout(reconnectTimer); reconnectTimer = null; reconnectAttempts = 0;
+  saveSession(null); connectionReady = false;
+  $('create').disabled = $('join').disabled = false;
+  const previous = ws; ws = null; previous?.close();
+  myId = roomCode = state = pendingCard = null;
+  $('colorPicker').close(); $('game').classList.add('hidden'); $('lobby').classList.remove('hidden'); error(message);
+}
+function scheduleReconnect(immediate = false) {
+  if (!session || reconnectTimer) return;
+  disableActions(); error('Connection interrupted. Reconnecting to your room…');
+  const delay = immediate ? 0 : Math.min(1000 * 2 ** reconnectAttempts++, 10000);
+  reconnectTimer = setTimeout(async () => {
+    reconnectTimer = null;
+    try { await connect(); } catch { scheduleReconnect(); }
+  }, delay);
+}
 function send(message) {
-  if (ws?.readyState !== WebSocket.OPEN) { error('Connection lost. Leave this room and join a new one to reconnect.'); return false; }
+  if (!connectionReady || ws?.readyState !== WebSocket.OPEN) { scheduleReconnect(true); return false; }
   ws.send(JSON.stringify(message)); return true;
 }
 function connect() {
-  return new Promise((resolve, reject) => {
-    const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`);
-    ws = socket;
-    socket.onopen = resolve;
+  if (connectPromise) return connectPromise;
+  connectPromise = new Promise((resolve, reject) => {
+    const socket = new WebSocket((location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host);
+    ws = socket; connectionReady = false;
+    let opened = false;
+    const timeout = setTimeout(() => { reject(new Error('The game server is taking too long to respond. Please try again.')); socket.close(); }, 20000);
+    socket.onopen = () => {
+      opened = true; clearTimeout(timeout);
+      if (socket !== ws) { socket.close(); resolve(); return; }
+      lastSeen = Date.now();
+      if (session) socket.send(JSON.stringify({type:'resume', ...session}));
+      else connectionReady = true;
+      resolve();
+    };
     socket.onerror = () => reject(new Error('Could not connect to the game server. Please try again.'));
-    socket.onclose = () => { if (socket === ws && roomCode) { error('Connection lost. Leave this room and join a new one to reconnect.'); $('draw').disabled = $('deck').disabled = $('start').disabled = true; document.querySelectorAll('#hand button').forEach(b => b.disabled = true); } };
+    socket.onclose = event => {
+      clearTimeout(timeout);
+      if (!opened) reject(new Error('Could not connect to the game server. Please try again.'));
+      if (socket !== ws) return;
+      disableActions();
+      if (event.code === 4001) { resetRoom('This seat was opened in another tab. Create or join a room to play separately.'); return; }
+      if (session) scheduleReconnect();
+      else { $('create').disabled = $('join').disabled = false; error('Connection interrupted. Please try creating or joining a room again.'); }
+    };
     socket.onmessage = event => {
+      if (socket !== ws) return;
+      lastSeen = Date.now();
       const message = JSON.parse(event.data);
-      if (message.type === 'error') { error(message.message); return; }
+      if (message.type === 'pong') return;
+      if (message.type === 'error') {
+        if (message.code === 'resume_failed') { resetRoom(message.message); return; }
+        error(message.message); return;
+      }
       if (message.type === 'joined') {
-        myId = message.id; roomCode = message.code; error();
-        $('lobby').classList.add('hidden'); $('game').classList.remove('hidden'); $('code').textContent = roomCode;
+        myId = message.id; roomCode = message.code; connectionReady = true; reconnectAttempts = 0;
+        if (message.token) saveSession({id:myId,code:roomCode,token:message.token});
+        error(); $('lobby').classList.add('hidden'); $('game').classList.remove('hidden'); $('code').textContent = roomCode;
       }
       if (message.type === 'state') { state = message.state; render(); }
     };
-  });
+  }).finally(() => { connectPromise = null; });
+  return connectPromise;
 }
+setInterval(() => {
+  if (!session) return;
+  if (ws?.readyState === WebSocket.OPEN) {
+    if (Date.now() - lastSeen > 60000) { ws.close(); return; }
+    ws.send(JSON.stringify({type:'ping'}));
+  } else if (ws?.readyState !== WebSocket.CONNECTING) scheduleReconnect();
+}, 20000);
+window.addEventListener('online', () => { if (session && ws?.readyState !== WebSocket.OPEN) scheduleReconnect(true); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && session) {
+    if (ws?.readyState === WebSocket.OPEN && Date.now() - lastSeen > 60000) ws.close();
+    else if (ws?.readyState !== WebSocket.OPEN) scheduleReconnect(true);
+  }
+});
 async function enter(type) {
   if (connecting || !$('name').reportValidity()) return;
   const code = $('roomInput').value.trim().toUpperCase();
@@ -49,10 +119,8 @@ $('copy').onclick = async () => { try { await navigator.clipboard.writeText(room
 $('start').onclick = () => send({ type: 'start' });
 $('draw').onclick = $('deck').onclick = () => send({ type: 'draw' });
 $('leave').onclick = () => {
-  if (ws?.readyState === WebSocket.OPEN) send({ type: 'leave' });
-  const previous = ws; ws = null; previous?.close();
-  myId = roomCode = state = pendingCard = null;
-  $('colorPicker').close(); $('game').classList.add('hidden'); $('lobby').classList.remove('hidden'); error();
+  if (connectionReady && ws?.readyState === WebSocket.OPEN) send({ type:'leave' });
+  resetRoom();
 };
 $('rulesOpen').onclick = () => $('rules').showModal();
 $('rulesClose').onclick = () => $('rules').close();
@@ -70,7 +138,7 @@ function decorateCard(element, card) {
 }
 function render() {
   if (!state) return;
-  const playing = state.status === 'playing', ownTurn = playing && state.currentPlayerId === myId;
+  const playing = state.status === 'playing', ownTurn = connectionReady && playing && state.currentPlayerId === myId;
   if (!ownTurn && $('colorPicker').open) $('colorPicker').close();
   const myIndex = state.players.findIndex(player => player.id === myId);
   const ordered = [...state.players.slice(myIndex), ...state.players.slice(0, myIndex)];
@@ -87,7 +155,7 @@ function render() {
     seat.append(avatar, name, count); $('players').append(seat);
   });
   $('start').classList.toggle('hidden', state.hostId !== myId || state.status !== 'lobby');
-  $('start').disabled = state.players.length < 2;
+  $('start').disabled = !connectionReady || state.players.length < 2;
   $('waiting').classList.toggle('hidden', state.status !== 'lobby');
   $('table').classList.toggle('hidden', state.status === 'lobby');
   $('waitingText').textContent = `${state.players.length}/8 players at the table. ` + (state.players.length < 2 ? `Invite ${2 - state.players.length} more to start.` : state.hostId === myId ? (state.players.length === 8 ? 'The table is full. Ready to deal?' : 'Ready to deal, or invite more friends?') : 'Waiting for the host to deal.');
@@ -114,3 +182,5 @@ function render() {
   });
 }
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+
+if (session) { disableActions(); error('Reconnecting to your room…'); connect().catch(() => scheduleReconnect()); }
