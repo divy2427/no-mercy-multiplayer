@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123d2d"><link rel="manifest" href="/manifest.json">
+<title>NO MERCY — Room Play</title>
+<style>
+:root{color-scheme:dark;--felt:#126044;--gold:#f3c969}*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial;background:radial-gradient(ellipse at center,#1b7956,#082d22);color:#fff;min-height:100vh}
+header{text-align:center;padding:15px 10px 6px}h1{margin:0;color:var(--gold);font-size:clamp(25px,6vw,40px);letter-spacing:2px;text-shadow:0 3px #542b0d}
+.sub{font-size:12px;opacity:.8}.wrap{max-width:760px;margin:auto;padding:12px}
+.panel{background:#071e18c9;border:1px solid #ffffff33;border-radius:18px;padding:15px;margin:10px 0;box-shadow:0 8px 25px #0005}
+input,button{font:inherit;border-radius:12px;border:0;padding:12px}input{background:#fff;color:#111;min-width:0;width:100%}
+button{background:var(--gold);color:#241b0b;font-weight:800;cursor:pointer}button:disabled{opacity:.4}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.hidden{display:none!important}
+#roomline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#code{font-size:24px;letter-spacing:4px;color:var(--gold);font-weight:900}
+.players{display:flex;gap:8px;flex-wrap:wrap}.player{background:#ffffff17;border-radius:12px;padding:9px 12px;font-size:13px}
+#table{background:radial-gradient(ellipse,#25805b,#0b4936);border:7px solid #65391e;border-radius:48% / 24%;min-height:190px;padding:22px;display:flex;align-items:center;justify-content:center;gap:18px;box-shadow:inset 0 0 20px #0008}
+.card{width:72px;height:108px;border:3px solid white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:1000;text-shadow:0 2px 4px #0008;box-shadow:0 4px 8px #0008;transform:rotate(-5deg);flex-shrink:0}
+.red{background:#d52e35}.blue{background:#1768d5}.green{background:#16864b}.yellow{background:#e8b928;color:#191919;text-shadow:none}.wild{background:conic-gradient(#d52e35 0 25%,#1768d5 0 50%,#16864b 0 75%,#e8b928 0)}
+.hand{display:flex;gap:7px;overflow-x:auto;padding:12px 3px 18px;min-height:130px}
+.hand .card{width:58px;height:88px;font-size:21px;cursor:pointer;transform:none}
+.hand .card:active{transform:translateY(-8px)}
+.small{font-size:12px;opacity:.8}.status{min-height:24px;color:#ffe39a;font-weight:700}
+@media(max-width:420px){.card{width:62px;height:94px}.hand .card{width:51px;height:78px}}
+</style></head>
+<body>
+<header><h1>NO MERCY</h1><div class="sub">UNOFFICIAL FAN-MADE ROOM PLAY PROTOTYPE</div></header>
+<main class="wrap">
+<section id="lobby" class="panel">
+<h2>Play with friends</h2>
+<label class="small" for="name">Your player name</label><input id="name" maxlength="18" placeholder="Player name">
+<div class="row" style="margin-top:10px"><button id="create">Create room</button><button id="joinToggle">Join room</button></div>
+<div id="joinBox" class="hidden" style="margin-top:10px"><input id="roomInput" maxlength="6" placeholder="6-character room code" autocapitalize="characters"><button id="join" style="width:100%;margin-top:8px">Join room</button></div>
+<p class="small">Private rooms use a 6-character code. 4–6 players can play together.</p>
+</section>
+<section id="game" class="hidden">
+<div class="panel"><div id="roomline"><div>ROOM <span id="code"></span></div><button id="copy">Copy code</button></div><div id="players" class="players"></div><div class="status" id="status"></div><button id="start" class="hidden">Start game (host)</button></div>
+<div class="panel"><div id="table"><div><div class="small">TOP CARD</div><div id="topcard" class="card wild">?</div></div><div><div class="small">ACTIVE COLOUR</div><strong id="active">—</strong></div></div>
+<div class="panel"><div id="turn" class="status">Waiting for players…</div><div class="row"><button id="draw">Draw 1 card</button></div><div class="small" style="margin-top:8px">Tap a playable card to play it. Wild cards use the colour picker.</div><div id="hand" class="hand"></div></div>
+</section>
+<div id="error" class="status" role="alert"></div>
+</main>
+<script>
+let ws, myId=null, roomCode=null, state=null;
+const $=id=>document.getElementById(id);
+function connect(){return new Promise((resolve,reject)=>{
+ const scheme=location.protocol==="https:"?"wss":"ws"; ws=new WebSocket(`${scheme}://${location.host}`);
+ ws.onopen=resolve;ws.onerror=()=>reject(new Error("Could not connect to the game server."));
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="error"){$("error").textContent=m.message;return}
+ if(m.type==="joined"){myId=m.id;roomCode=m.code;$("lobby").classList.add("hidden");$("game").classList.remove("hidden");$("code").textContent=roomCode;}
+ if(m.type==="state"){state=m.state;render();}
+ };
+ });}
+async function enter(type){$("error").textContent="Connecting…";try{if(!ws||ws.readyState!==1)await connect();ws.send(JSON.stringify({type,name:$("name").value||"Player",code:$("roomInput").value.trim().toUpperCase()}));}catch(e){$("error").textContent=e.message;}}
+$("create").onclick=()=>enter("create");$("joinToggle").onclick=()=>$("joinBox").classList.toggle("hidden");$("join").onclick=()=>enter("join");
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(roomCode);$("status").textContent="Room code copied!";}catch{$("status").textContent="Your room code is "+roomCode;}};
+$("start").onclick=()=>ws.send(JSON.stringify({type:"start"}));$("draw").onclick=()=>ws.send(JSON.stringify({type:"draw"}));
+function label(c){return c.value==="draw2"?"+2":c.value==="wild4"?"+4":c.value==="reverse"?"↔":c.value==="skip"?"⊘":c.value==="wild"?"★":c.value;}
+function render(){
+ if(!state)return;
+ $("players").innerHTML=state.players.map(p=>`<div class="player">${p.name}${p.id===state.hostId?" 👑":""} · ${p.count} cards${p.id===state.currentPlayerId?" ◀":""}${!p.connected?" · offline":""}</div>`).join("");
+ $("start").classList.toggle("hidden",state.hostId!==myId||state.status!=="lobby");
+ $("start").disabled=state.players.length<4;
+ $("status").textContent=state.message||"";
+ $("turn").textContent=state.status==="lobby"?`Waiting for players (${state.players.length}/6). Need at least 4.`:state.status==="finished"?`${state.winner} wins!`:state.currentPlayerId===myId?"YOUR TURN":"Waiting for another player…";
+ $("topcard").className="card "+(state.top?.color||"wild");$("topcard").textContent=state.top?label(state.top):"?";
+ $("active").textContent=state.activeColor||"—";
+ $("draw").disabled=state.status!=="playing"||state.currentPlayerId!==myId;
+ $("hand").innerHTML="";
+ state.hand.forEach(c=>{const b=document.createElement("button");b.className="card "+c.color;b.textContent=label(c);b.title="Play "+c.value;b.disabled=state.status!=="playing"||state.currentPlayerId!==myId;
+ b.onclick=()=>{let color;if(c.color==="wild"){color=prompt("Choose a colour: red, blue, green, yellow","red");if(!color)return;color=color.toLowerCase();}ws.send(JSON.stringify({type:"play",cardId:c.id,color}));};$("hand").appendChild(b);});
+}
+if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
+</script></body></html>
