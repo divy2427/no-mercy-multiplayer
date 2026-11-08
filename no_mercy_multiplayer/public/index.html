@@ -21,7 +21,7 @@
 <div class="name-field"><span aria-hidden="true">☺</span><input id="name" maxlength="18" placeholder="Your player name" autocomplete="nickname" required></div>
 <div class="entry-actions"><button id="create" class="primary" type="submit">Create a room <span aria-hidden="true">↗</span></button><button id="joinToggle" class="secondary" type="button" aria-expanded="false" aria-controls="joinBox">Join friends</button></div>
 <div id="joinBox" class="hidden join-box"><label for="roomInput">YOUR 6-CHARACTER ROOM CODE</label><div><input id="roomInput" maxlength="6" placeholder="ABC123" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="join" type="button" class="primary">Join →</button></div></div>
-<p class="form-note">⌁ &nbsp;4–6 friends · Private rooms · No sign-up</p>
+<p class="form-note">⌁ &nbsp;2–8 friends · Private rooms · No sign-up</p>
 </form>
 </div>
 <div class="preview-scene" aria-label="Illustration of friends around a colorful card table">
@@ -47,7 +47,7 @@
 <div id="error" class="error hidden" role="alert"></div>
 </main>
 <footer class="site-footer"><span>NO MERCY / ROOM PLAY</span><span>Uno-style · Unofficial fan-made game</span></footer>
-<dialog id="rules"><button id="rulesClose" class="dialog-close icon-button" aria-label="Close instructions">×</button><span class="eyebrow">THE TABLE RULES</span><h2>Friends first.<br>Until the first +4.</h2><p>Create a private room and share the code. Once 4–6 players have joined, the host can deal.</p><ol><li>Match the top card’s <b>color or value</b>.</li><li>Play a wild card to choose the next color.</li><li>Can’t play? Draw one card and your turn ends.</li><li>Empty your hand first to win.</li></ol><p class="rules-note">+2 and +4 make the next player draw and miss a turn. Reverse changes direction. This prototype uses basic Uno-style rules.</p></dialog>
+<dialog id="rules"><button id="rulesClose" class="dialog-close icon-button" aria-label="Close instructions">×</button><span class="eyebrow">THE TABLE RULES</span><h2>Friends first.<br>Until the first +4.</h2><p>Create a private room and share the code. Once 2–8 players have joined, the host can deal.</p><ol><li>Match the top card’s <b>color or value</b>.</li><li>Play a wild card to choose the next color.</li><li>Can’t play? Draw one card and your turn ends.</li><li>Empty your hand first to win.</li></ol><p class="rules-note">+2 and +4 make the next player draw and miss a turn. Reverse changes direction. This prototype uses basic Uno-style rules.</p></dialog>
 <dialog id="colorPicker"><span class="eyebrow">WILD CARD</span><h2>Pick your next color.</h2><div class="color-options"><button class="red" data-color="red">Red</button><button class="blue" data-color="blue">Blue</button><button class="green" data-color="green">Green</button><button class="yellow" data-color="yellow">Yellow</button></div><button id="cancelColor" class="small-button">Cancel</button></dialog>
 <script src="/app.js" defer></script>
 </body></html>
