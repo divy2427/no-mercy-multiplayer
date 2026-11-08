@@ -77,7 +77,7 @@ function nextIndex(room, from=room.players.findIndex(p=>p.id===room.currentPlaye
   return (from + room.direction + room.players.length) % room.players.length;
 }
 function startGame(room) {
-  if (room.players.length < 4 || room.players.length > 6) return tell(room,"A game needs 4–6 players.");
+  if (room.players.length < 2 || room.players.length > 8) return tell(room,"A game needs 2–8 players.");
   room.deck = makeDeck(); room.discard=[]; room.direction=1; room.activeColor=null; room.winner=null;
   room.players.forEach(p=>p.hand=[]);
   room.players.forEach(p=>draw(room,p,7));
@@ -100,7 +100,7 @@ function playCard(room, player, cardId, chosenColor) {
   room.activeColor = card.color==="wild" ? (COLORS.includes(chosenColor)?chosenColor:COLORS[0]) : card.color;
   if (!player.hand.length) { room.status="finished"; room.winner=player.name; return tell(room,`${player.name} wins!`); }
   if (card.value==="reverse" && room.players.length>2) room.direction *= -1;
-  if (card.value==="skip") room.currentPlayerId=room.players[nextIndex(room)].id;
+  if (card.value==="skip" || (card.value==="reverse" && room.players.length===2)) room.currentPlayerId=room.players[nextIndex(room,nextIndex(room))].id;
   else {
     if (card.value==="draw2" || card.value==="wild4") {
       const victim=room.players[nextIndex(room)];
@@ -122,12 +122,12 @@ function handle(ws, msg) {
     } else room=rooms.get(String(data.code||"").toUpperCase());
     if (!room) return ws.send(JSON.stringify({type:"error",message:"Room not found. Check the code."}));
     if (room.status!=="lobby") return ws.send(JSON.stringify({type:"error",message:"That game has already started."}));
-    if (room.players.length>=6) return ws.send(JSON.stringify({type:"error",message:"Room is full (6 players max)."}));
+    if (room.players.length>=8) return ws.send(JSON.stringify({type:"error",message:"Room is full (8 players max)."}));
     const player={id:crypto.randomUUID(),name,hand:[],ws,connected:true};
     room.players.push(player); if (!room.hostId) room.hostId=player.id;
     ws.playerId=player.id; ws.roomCode=room.code;
     ws.send(JSON.stringify({type:"joined",id:player.id,code:room.code}));
-    tell(room,`${name} joined (${room.players.length}/6).`);
+    tell(room,`${name} joined (${room.players.length}/8).`);
     return;
   }
   const room=rooms.get(ws.roomCode);
@@ -135,7 +135,7 @@ function handle(ws, msg) {
   if (!room || !player) return;
   if (data.type==="start") {
     if (player.id!==room.hostId) return;
-    if (room.players.length<4) return tell(room,"Need at least 4 players to start.");
+    if (room.players.length<2) return tell(room,"Need at least 2 players to start.");
     startGame(room);
   } else if (data.type==="play") {
     playCard(room,player,data.cardId,data.color);
