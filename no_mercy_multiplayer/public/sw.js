@@ -1,5 +1,5 @@
-const CACHE = 'no-mercy-room-v4';
-const ASSETS = ['/', '/styles.css', '/app.js', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
+const CACHE = 'no-mercy-room-v5';
+const ASSETS = ['/', '/styles.css', '/app.js', '/engine.js', '/solo.js', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('no-mercy-room-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', event => {
