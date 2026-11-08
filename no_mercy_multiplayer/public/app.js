@@ -1,7 +1,7 @@
 let ws, myId = null, roomCode = null, state = null, pendingCard = null, connecting = false;
 const $ = id => document.getElementById(id);
 const colors = ['red', 'blue', 'green', 'yellow'];
-const faces = ['😎', '😏', '🤩', '🦊', '🐼', '🤠'];
+const faces = ['😎', '😏', '🤩', '🦊', '🐼', '🤠', '🦁', '🐸'];
 const palettes = ['violet', 'coral', 'mint'];
 function error(message = '') { $('error').textContent = message; $('error').classList.toggle('hidden', !message); }
 function send(message) {
@@ -74,24 +74,23 @@ function render() {
   if (!ownTurn && $('colorPicker').open) $('colorPicker').close();
   const myIndex = state.players.findIndex(player => player.id === myId);
   const ordered = [...state.players.slice(myIndex), ...state.players.slice(0, myIndex)];
-  const positions = [[50, 94], [10, 58], [24, 10], [76, 10], [90, 58], [50, 3]];
-  const layouts = { 1: [0], 2: [0, 5], 3: [0, 2, 3], 4: [0, 1, 5, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 5, 3, 4] };
   $('players').replaceChildren();
   ordered.forEach((player, index) => {
     const originalIndex = state.players.findIndex(p => p.id === player.id);
     const seat = document.createElement('div');
     seat.className = 'player' + (player.id === myId ? ' self' : '') + (player.id === state.currentPlayerId ? ' current' : '') + (!player.connected ? ' offline' : '');
-    const [left, top] = positions[layouts[ordered.length][index]]; seat.style.left = left + '%'; seat.style.top = top + '%';
-    const avatar = document.createElement('span'); avatar.className = 'avatar ' + palettes[originalIndex % 3]; avatar.textContent = faces[originalIndex % 6]; avatar.setAttribute('aria-hidden', 'true');
+    const angle = index * 2 * Math.PI / ordered.length;
+    const left = 50 - 42 * Math.sin(angle), top = 49 + 45 * Math.cos(angle); seat.style.left = left + '%'; seat.style.top = top + '%';
+    const avatar = document.createElement('span'); avatar.className = 'avatar ' + palettes[originalIndex % 3]; avatar.textContent = faces[originalIndex % faces.length]; avatar.setAttribute('aria-hidden', 'true');
     const name = document.createElement('span'); name.className = 'player-name'; name.textContent = player.name + (player.id === myId ? ' · You' : '') + (player.id === state.hostId ? ' ♛' : '');
     const count = document.createElement('span'); count.className = 'player-count'; count.textContent = !player.connected ? 'Disconnected' : state.status === 'lobby' ? 'Ready to play' : `${player.count} card${player.count === 1 ? '' : 's'}`;
     seat.append(avatar, name, count); $('players').append(seat);
   });
   $('start').classList.toggle('hidden', state.hostId !== myId || state.status !== 'lobby');
-  $('start').disabled = state.players.length < 4;
+  $('start').disabled = state.players.length < 2;
   $('waiting').classList.toggle('hidden', state.status !== 'lobby');
   $('table').classList.toggle('hidden', state.status === 'lobby');
-  $('waitingText').textContent = `${state.players.length}/6 players at the table. ` + (state.players.length < 4 ? `Invite ${4 - state.players.length} more to start.` : state.hostId === myId ? 'Everyone’s here. Ready to deal?' : 'Waiting for the host to deal.');
+  $('waitingText').textContent = `${state.players.length}/8 players at the table. ` + (state.players.length < 2 ? `Invite ${2 - state.players.length} more to start.` : state.hostId === myId ? (state.players.length === 8 ? 'The table is full. Ready to deal?' : 'Ready to deal, or invite more friends?') : 'Waiting for the host to deal.');
   $('status').textContent = state.message || '';
   $('turn').textContent = state.status === 'lobby' ? 'Your cards will appear here' : state.status === 'finished' ? `${state.winner} wins! 🎉` : ownTurn ? 'Your turn. Make it count.' : `${state.players.find(p => p.id === state.currentPlayerId)?.name || 'Another player'}’s turn`;
   $('turn').classList.toggle('your-turn', ownTurn);
