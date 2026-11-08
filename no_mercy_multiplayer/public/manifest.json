@@ -3,8 +3,8 @@
   "short_name": "NO MERCY",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#082d22",
-  "theme_color": "#123d2d",
+  "background_color": "#f7f8ef",
+  "theme_color": "#10796c",
   "icons": [
     {
       "src": "/icons/icon-192.png",
