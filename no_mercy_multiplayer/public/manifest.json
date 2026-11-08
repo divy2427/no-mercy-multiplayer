@@ -3,8 +3,8 @@
   "short_name": "NO MERCY",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f8ef",
-  "theme_color": "#10796c",
+  "background_color": "#0a1218",
+  "theme_color": "#0a1218",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -16,5 +16,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "Private No Mercy rooms and local computer matches."
 }

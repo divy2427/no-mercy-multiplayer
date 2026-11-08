@@ -154,6 +154,11 @@ function decorateCard(element, card) {
   element.className = 'card ' + (card?.color || 'wild') + (card && label(card).length > 2 ? ' special-card' : '');
   element.dataset.value = card ? label(card) : '?';
   const span = document.createElement('span'); span.textContent = element.dataset.value; element.replaceChildren(span);
+  if (card) {
+    const corner = document.createElement('span'); corner.className = 'card-corner'; corner.textContent = element.dataset.value; corner.setAttribute('aria-hidden','true'); element.append(corner);
+    const titles = {draw2:'DRAW TWO',draw4:'DRAW FOUR',draw6:'DRAW SIX',draw10:'DRAW TEN',reverse4:'REVERSE +4',reverse:'REVERSE',skip:'SKIP',skipAll:'SKIP EVERYONE',discardAll:'DISCARD ALL',roulette:'COLOR ROULETTE'};
+    if (titles[card.value]) { const title=document.createElement('span'); title.className='card-description'; title.textContent=titles[card.value]; title.setAttribute('aria-hidden','true'); element.append(title); }
+  }
 }
 function render() {
  if (!state) return;
@@ -195,7 +200,7 @@ function render() {
  $('catchButtons').replaceChildren();
  if(connectionReady&&playing&&!me?.eliminated)state.players.filter(p=>p.id!==myId&&state.unoVulnerable?.includes(p.id)).forEach(p=>{const b=document.createElement('button');b.className='catch-button';b.textContent='Catch '+p.name+' · no UNO!';b.onclick=()=>send({type:'catchUno',targetId:p.id});$('catchButtons').append(b);});
  $('hand').replaceChildren();$('hand').classList.toggle('many',state.hand.length>(window.innerWidth<721?8:12));
- state.hand.forEach((card,index)=>{const b=document.createElement('button');decorateCard(b,card);const playable=ownTurn&&state.playableCardIds.includes(card.id);b.disabled=!playable;b.classList.toggle('playable',playable);b.classList.toggle('special-card',label(card).length>2);b.setAttribute('aria-label','Play '+card.color+' '+card.value);b.title=card.color+' '+card.value;b.style.setProperty('--tilt',Math.max(-10,Math.min(10,(index-(state.hand.length-1)/2)*2))+'deg');b.onclick=()=>requestPlay(card);$('hand').append(b);});
+ state.hand.forEach((card,index)=>{const b=document.createElement('button');decorateCard(b,card);const playable=ownTurn&&state.playableCardIds.includes(card.id);b.disabled=!playable;b.classList.toggle('playable',playable);if(playable){const badge=document.createElement('span');badge.className='play-badge';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);}b.classList.toggle('special-card',label(card).length>2);b.setAttribute('aria-label','Play '+card.color+' '+card.value);b.title=card.color+' '+card.value;b.setAttribute('aria-describedby','handHelp');b.style.setProperty('--tilt',Math.max(-10,Math.min(10,(index-(state.hand.length-1)/2)*2))+'deg');b.onclick=()=>requestPlay(card);$('hand').append(b);});
  if(ownTurn&&state.choice?.type==='roulette'&&!$('colorPicker').open){pendingAction=null;$('colorPicker').querySelector('h2').textContent='Roulette: choose a color.';$('cancelColor').classList.add('hidden');$('colorPicker').showModal();}
 }
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
