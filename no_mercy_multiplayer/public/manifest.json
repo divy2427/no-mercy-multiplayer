@@ -17,5 +17,6 @@
       "type": "image/png"
     }
   ],
-  "description": "Private No Mercy rooms and local computer matches."
+  "description": "Custom No Mercy rooms, local computer opponents and completed-hand records.",
+  "orientation": "landscape"
 }

@@ -23,7 +23,7 @@ function handle(ws,raw){let data;try{data=JSON.parse(raw);}catch{return;}if(!dat
  }
  if(data.type==='create'||data.type==='join'){
   if(ws.playerId)return;
-  let room;if(data.type==='create'){room=Game.create(code(),data.scoreMode===true);rooms.set(room.code,room);}else room=rooms.get(String(data.code||'').toUpperCase());
+  let room;if(data.type==='create'){room=Game.create(code(),data.scoreMode===true,data.rules);rooms.set(room.code,room);}else room=rooms.get(String(data.code||'').toUpperCase());
   if(!room)throw Error('Room not found. Check the code.');
   const p={id:crypto.randomUUID(),resumeToken:crypto.randomBytes(32).toString('hex'),name:String(data.name||'Player').trim().slice(0,18)||'Player',ws,connected:true};
   Game.add(room,p);ws.playerId=p.id;ws.roomCode=room.code;joined(ws,room,p);return;

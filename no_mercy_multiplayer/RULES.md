@@ -1,5 +1,14 @@
 # Game rules and adaptations
 
+## v1.2 room overrides
+
+The host may override the standard deck and rules when creating the room: enabled number and colored-action types; 0-20 copies of each wild type; a 3-12 card starting hand; a 10-50 card Mercy limit; and stacking, 7-swap and 0-pass toggles. These settings also apply to computer matches and remain fixed across hands in the same room.
+
+One enabled number card is reserved before dealing to guarantee a valid opening discard, even with a tiny custom number set. Deck size limits room capacity to `min(8, floor((deck size - 1) / starting cards))`.
+
+Completed-hand records use the same point calculation as optional scoring. They are recorded even when score-based victory is off. Mercy bonuses persist after an eliminated player leaves. A last-survivor win caused by a player leaving is labeled Last standing.
+
+The standard reference below applies wherever the host has not selected an override.
 ## Implemented rules
 
 The supplied RULE.pdf is the primary rules reference. The interface includes a rewritten summary in **How to play**.
@@ -26,4 +35,3 @@ The supplied RULE.pdf is the primary rules reference. The interface includes a r
 - A draw penalty or roulette stops at Mercy elimination because a player leaves immediately at 25 cards.
 - If the draw pile and every eligible recycled card are exhausted before a match can be drawn, the turn passes rather than freezing the game.
 - Computer matches are local to this tab. They cannot be shared as online room codes.
-

@@ -1,70 +1,93 @@
-# NO MERCY v1.1.0 — dark release
+# NO MERCY v1.2.0
 
-## Upload to GitHub and Render
+Dark card-table game with mobile landscape play, custom rooms, local computer opponents and completed-hand records.
 
-The ZIP contains one folder: `no_mercy_multiplayer`.
+## Upload this release
 
-1. Extract the ZIP on your computer.
-2. Open the ROOT of your GitHub repository (the page that contains the existing `no_mercy_multiplayer` folder).
-3. Choose **Add file > Upload files** and drag in the extracted `no_mercy_multiplayer` folder. Existing paths are updated; new files are added.
-4. Check that the path is `no_mercy_multiplayer/public/index.html`, not `no_mercy_multiplayer/no_mercy_multiplayer/public/index.html`.
-5. Click **Commit changes**.
-6. In Render, **Manual Deploy > Deploy latest commit**. Wait for Live.
-7. Close old game tabs, reopen the website, and create a NEW room. For a cache check, try Incognito once.
+1. Extract the ZIP. It contains one folder, `no_mercy_multiplayer`.
+2. Open the ROOT of your GitHub repository. Choose **Add file > Upload files** and drag in that entire folder.
+3. Commit the upload, then use **Render > Manual Deploy > Deploy latest commit**.
+4. Once Live, close old game tabs, reopen the site and create a NEW room.
 
-Upload the ENTIRE public folder, including its NEW `fonts` folder. The fonts are now local assets. Do not upload just styles.css.
+Keep the path `no_mercy_multiplayer/public/index.html`; do not create a second nested `no_mercy_multiplayer` directory.
 
-If uploading individual files, the runtime changes from the previous rules release are:
+Upload the whole folder, including **server.js**, **public/engine.js**, the NEW **public/room-tools.js**, and the existing **public/fonts/** folder. Updating only the stylesheet will not enable custom online rules or history. Matching files are replaced and new files are added; no manual deletion is required.
 
-- `no_mercy_multiplayer/public/styles.css`
-- `no_mercy_multiplayer/public/app.js`
-- `no_mercy_multiplayer/public/index.html`
-- `no_mercy_multiplayer/public/manifest.json`
-- `no_mercy_multiplayer/public/sw.js`
-- `no_mercy_multiplayer/public/fonts/` (both .woff2 files and both license files)
+The archive contains one README.md and a separate RULES.md. Do not restore an old README.txt.
 
-The included `package.json` bumps the version and adds `npm test`; include it with `tests/rules.cjs`. The complete archive includes the existing server and rules files as well, so a fresh install is runnable.
+## Mobile landscape
 
-## What changed
+Turn your phone sideways during a game. On short landscape screens the header and room controls become compact, the table fills the upper area, and your cards and turn controls sit together below it. Only the hand scrolls horizontally when it cannot fit.
 
-- Charcoal interface, deep green felt, lime accents, dark forms and dialogs.
-- Desktop hand cards grow from 80 x 118 to 108 x 158 pixels.
-- Mobile hand cards grow from 65 x 99 to 88 x 132 pixels.
-- Desktop center cards are 110 x 162; phone center cards are 88 x 132 (80 x 120 on the smallest screens).
-- Cards retain their full color and brightness when disabled. Playable cards have a lime border and a check mark.
-- Larger values, a second corner value, and high-contrast action names on special cards.
-- Less overlap and a horizontally scrollable hand; no horizontal page overflow at tested phone widths.
-- More spacing between the table seats and the hand panel; compact phone branding and roulette labels.
-- Bundled DM Sans and Barlow Condensed font files and their OFL licenses. No Google Fonts requests are required.
-- Version 6 app cache includes fonts. Previously cached assets can load after three seconds if the server is slow; a healthy network response continues updating the cache.
-- Matching installed-app theme colors, page description, release version and runnable rules tests.
+Use **Full screen** if the browser supports it. Installed apps request landscape orientation; a normal browser may require manual device rotation. Portrait remains usable and shows a rotation hint.
 
-No game rules were changed in this visual release. It retains the 168-card rules engine, UNO calling/catching, optional scoring, 2-8 player online rooms and 1-7 local computer opponents.
+Tested CSS viewport sizes: 844 x 390 and 568 x 320 for landscape; 390 x 844 for portrait. These are browser viewport checks, not a physical-device certification.
+
+## Customize a room or computer match
+
+Enter a name, expand **Customize rules**, and choose settings before creating the room or pressing **Play vs computer**.
+
+- Enable or exclude each number type (0-9).
+- Enable or exclude Draw 2, Draw 4, Skip, Reverse, Discard All and Skip Everyone.
+- Set total copies of EACH wild type from 0 to 20: Wild Reverse +4, Wild +6, Wild +10 and Color Roulette. Zero removes that type.
+- Deal 3-12 cards per player.
+- Set the Mercy threshold from 10 to 50 cards; it must exceed the starting hand size.
+- Toggle draw stacking, 7 swaps and 0 passes independently. A 7 or 0 remains an ordinary number when its special rule is off.
+- Use **Reset standard rules** to restore the standard 168-card configuration.
+
+The deck preview shows its size, starting-hand size and player capacity. At least one number type must be enabled. A number is reserved for the opening discard, so a custom deck cannot accidentally deal all its number cards into hands.
+
+A valid deck must support at least two players. Its maximum capacity is the smaller of 8 or `floor((deck size - 1) / starting cards)`. A smaller deck may therefore support fewer than eight players. The app rejects invalid settings and too many computer opponents; the server also enforces the room limit.
+
+Settings are fixed for that room and are shared with guests and reconnecting players. The in-room **Rules** button shows the exact active configuration above the standard-rule reference. Create a new room to use different settings.
+
+Number copies and enabled colored-action copy counts keep their standard distribution. Wild counts are adjustable individually. The standard inventory and rules are in RULES.md.
+
+## Hand record and chart
+
+Open **History** from the room bar. A completed hand records its hand number, winner, points earned, victory type, match number and completion time.
+
+The chart shows the most recent 12 completed hands, colored by winner. The table keeps the latest 100 records, newest first. Points are recorded even when the optional 1000-point victory mode is off; they are hand statistics in that mode, not a different win condition.
+
+Use **Download CSV** to keep all stored records. Exported completion times are UTC. Starting another hand keeps the history. Starting a new scored match resets live match scores but keeps earlier hand records with their match numbers.
+
+Mercy bonuses remain counted if an eliminated player leaves before the hand ends. A win caused by another active player leaving is recorded as **Last standing**, rather than incorrectly claiming a Mercy elimination.
+
+## Online and computer play
+
+Online rooms support 2-8 players with the standard deck. The host shares a six-character room code and deals once enough players have joined. Reconnection restores the same seat, hand, rules and records while the server still retains that room.
+
+Computer matches support 1-7 opponents, subject to the selected deck's capacity. They run in the browser using the same rules engine and do not need a game-server connection after the assets load. The installed app cache can also reload those assets after a successful online visit.
+
+UNO calling, missed-call catching, all No Mercy actions, optional scoring and next-hand play remain available.
 
 ## Run locally
 
-From the `no_mercy_multiplayer` folder:
+From `no_mercy_multiplayer/`:
 
     npm install
     npm test
     npm start
 
-Open http://localhost:3000. The app is served by Node; do not open index.html directly.
+Open http://localhost:3000. Do not open index.html directly. No new npm dependencies or API keys are required for this release.
 
-## Verification completed
+## Validation
 
-- 16 rule tests, including 56 complete computer simulations over every player count from 2 through 8, with 168-card conservation checked after each move.
-- Full online two-player and eight-player matches, including reconnection with the same private hand and turn.
-- Browser checks of the dark lobby, eight-seat table, roulette picker, readable card faces and playable-card indicators.
-- Phone layouts tested at 390 and 320 CSS pixels. Both lobby and game stay within the page width; only the hand scrolls horizontally.
-- Browser reload and a new computer match succeeded with the local server stopped, using the installed asset cache.
-- All ten cached assets returned HTTP 200. Both bundled font files have valid WOFF2 headers.
-- JavaScript syntax and Git whitespace checks.
+- 28 directed rules, customization and history tests.
+- 77 complete computer simulations covering standard and custom decks, with card conservation checked after each action.
+- Standard online games with two and eight players, including reconnecting with the same private hand and turn.
+- A custom online game: exact room settings shared with guests, three-card deal, host-only start, finished-hand record and history restored on reconnection.
+- Server-side rejection of invalid wild quantities and custom-deck capacity overflow.
+- Browser checks of settings, resetting defaults, landscape fitting, seven-card hand scrolling, portrait rotation and custom-rule play.
+- Real completed-hand chart checked against two results and a downloaded CSV.
+- Compact chart checked in a 568 x 320 viewport.
+- Cached-page reload and a new computer match with the local server stopped.
+- All 11 cached assets returned HTTP 200; syntax and whitespace checks passed.
 
-## Operating limits
+## Record lifetime and deployment limits
 
-This is a tested release package, not a deployment confirmation. GitHub access in this session is read-only, so it has not been pushed or deployed here.
+Online rooms and their records are stored in server memory. A server restart or deployment clears them. A browser refresh can resume an online room if it still exists.
 
-Online rooms are still stored in server memory: a server restart or deployment clears them. A brief disconnect can resume while the server retains the room. Computer matches run in the browser and continue without a game-server connection after loading, but refreshing starts a new match. Offline reload requires the page assets to have been cached on an earlier successful visit.
+Computer matches and their records belong to the current tab session. Refreshing the page or starting a different room resets them. Export the CSV before leaving or refreshing if you want to retain the records. This release does not add a database or cloud history.
 
-Rules adaptations and the configured deck inventory are documented in RULES.md. The app retains the requested 2-8 extension to the printed 2-6 range.
+The ZIP is a tested release package, not confirmation of a live deployment. Upload and deploy it to update your Render site.

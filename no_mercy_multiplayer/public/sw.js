@@ -1,5 +1,5 @@
-const CACHE = 'no-mercy-room-v6';
-const ASSETS = ['/', '/styles.css', '/app.js', '/engine.js', '/solo.js', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/fonts/dm-sans-latin.woff2', '/fonts/barlow-condensed-800.woff2'];
+const CACHE = 'no-mercy-room-v7';
+const ASSETS = ['/', '/styles.css', '/app.js', '/room-tools.js', '/engine.js', '/solo.js', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/fonts/dm-sans-latin.woff2', '/fonts/barlow-condensed-800.woff2'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(url, {cache:'reload'})))).then(() => self.skipWaiting()));
 });
