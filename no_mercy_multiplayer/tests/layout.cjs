@@ -10,3 +10,12 @@ for(let n=2;n<=8;n++){
 }
 for(let n=1;n<=50;n++)for(let i=0;i<n;i++)assert.ok(Math.abs(layout.fan(n,i))<=13);
 console.log('Landscape viewport, seating and hand-fan checks passed.');
+
+for(const [width,height] of [[568,320],[844,390],[720,360],[1280,720]])for(let count=1;count<=49;count++){
+ const fit=layout.hand(count,width,height);
+ assert.ok(fit.rows*fit.columns>=count);
+ assert.ok(fit.cardWidth*fit.columns+4*(fit.columns-1)<=fit.availableWidth+.001);
+ assert.ok(fit.cardHeight*fit.rows+4*(fit.rows-1)<=fit.areaHeight-12+.001);
+ assert.ok(fit.cardHeight>0);
+}
+console.log('All 1–49 card hands fit without scrolling at four viewport sizes.');

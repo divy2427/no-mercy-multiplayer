@@ -208,7 +208,11 @@ function render() {
  if(state.status==='finished'&&state.hostId===myId){const b=document.createElement('button');b.className='primary';b.textContent=state.matchWinner?'New match →':'Next hand →';b.onclick=()=>send({type:'start'});$('roundInfo').append(b);}
  $('catchButtons').replaceChildren();
  if(connectionReady&&playing&&!me?.eliminated)state.players.filter(p=>p.id!==myId&&state.unoVulnerable?.includes(p.id)).forEach(p=>{const b=document.createElement('button');b.className='catch-button';b.textContent='Catch '+p.name+' · no UNO!';b.onclick=()=>send({type:'catchUno',targetId:p.id});$('catchButtons').append(b);});
- $('hand').replaceChildren();$('hand').classList.toggle('many',state.hand.length>(window.innerWidth<721?8:12));
+ const fit=TableLayout.hand(state.hand.length,layout.width,layout.height);
+ $('hand').style.setProperty('--fit-columns',fit.columns);$('hand').style.setProperty('--fit-rows',fit.rows);
+ $('hand').style.setProperty('--fit-card-h',fit.cardHeight+'px');$('hand').style.setProperty('--fit-card-w',fit.cardWidth+'px');
+ document.body.style.setProperty('--hand-area-h',fit.areaHeight+'px');
+ $('hand').replaceChildren();$('hand').classList.remove('many');
  state.hand.forEach((card,index)=>{const b=document.createElement('button');decorateCard(b,card);const playable=ownTurn&&state.playableCardIds.includes(card.id);b.disabled=!playable;b.classList.toggle('playable',playable);if(playable){const badge=document.createElement('span');badge.className='play-badge';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);}b.classList.toggle('special-card',label(card).length>2);b.setAttribute('aria-label','Play '+card.color+' '+card.value);b.title=card.color+' '+card.value;b.setAttribute('aria-describedby','handHelp');b.style.setProperty('--tilt',TableLayout.fan(state.hand.length,index)+'deg');b.onclick=()=>requestPlay(card);$('hand').append(b);});
  if(ownTurn&&state.choice?.type==='roulette'&&!$('colorPicker').open){pendingAction=null;$('colorPicker').querySelector('h2').textContent='Roulette: choose a color.';$('cancelColor').classList.add('hidden');$('colorPicker').showModal();}
 }

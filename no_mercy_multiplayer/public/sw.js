@@ -1,4 +1,4 @@
-const CACHE = 'no-mercy-room-v8';
+const CACHE = 'no-mercy-room-v9';
 const ASSETS = ['/', '/styles.css', '/table.css', '/table-layout.js', '/app.js', '/room-tools.js', '/engine.js', '/solo.js', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png', '/fonts/dm-sans-latin.woff2', '/fonts/barlow-condensed-800.woff2'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(url, {cache:'reload'})))).then(() => self.skipWaiting()));

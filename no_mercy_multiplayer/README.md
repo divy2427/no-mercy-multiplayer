@@ -1,4 +1,4 @@
-# NO MERCY v1.3.0
+# NO MERCY v1.3.1
 
 Dark card-table game with mobile landscape play, custom rooms, local computer opponents and completed-hand records.
 
@@ -17,7 +17,7 @@ The archive contains one README.md and a separate RULES.md. Do not restore an ol
 
 ## Mobile landscape
 
-Gameplay fills one landscape screen: opponents around the table, discard in the center, and a large fanned hand across the bottom. Swipe the hand horizontally when you hold many cards. The small menu at the top right contains Rules, History and Leave room.
+Gameplay fills one landscape screen: opponents around the table, discard in the center, and an automatically fitted hand across the bottom. Every card is visible without dragging: card size and row count adapt to the screen and hand size. Very large hands use smaller cards. The small menu at the top right contains Rules, History and Leave room.
 
 Turn the phone sideways to play. If auto-rotate is disabled, the game itself turns sideways so you can still hold the phone in landscape. The lobby stays upright. The fullscreen icon requests fullscreen and landscape orientation where supported; browser support varies.
 
