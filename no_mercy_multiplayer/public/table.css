@@ -1,0 +1,116 @@
+/* v1.3: a full-screen card table, rather than a vertically stacked webpage. */
+body.in-game{margin:0;height:100dvh;min-height:0;overflow:hidden;background:#061b24;overscroll-behavior:none}
+body.in-game>.topbar,body.in-game>.site-footer,body.in-game .rotate-hint{display:none}
+body.in-game main{height:100%;overflow:hidden}
+body.in-game .game{position:fixed;inset:auto;left:0;top:0;width:var(--stage-w,100vw);height:var(--stage-h,100dvh);max-width:none;margin:0;padding:0;display:block;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 38%,#285c4c 0,#113b37 45%,#071d28 85%)}
+body.in-game .game:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 10% 10%,#8ed4bb16 0 2px,transparent 3px),radial-gradient(circle at 87% 72%,#aad4ad12 0 3px,transparent 4px);background-size:47px 47px,83px 83px;pointer-events:none;z-index:-1}
+body.in-game.virtual-landscape .game{left:100vw;top:0;transform:rotate(90deg);transform-origin:0 0}
+body.in-game .room-bar{position:absolute;left:12px;right:12px;top:7px;height:32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:10px;z-index:15}
+body.in-game .room-bar .eyebrow{display:none}
+body.in-game .room-code-line{margin:0;display:flex;align-items:center;gap:7px;flex-wrap:nowrap;padding:6px 10px;border:1px solid #c0ebd225;border-radius:18px;background:#071a24b3;font-size:10px;line-height:1}
+body.in-game .room-code-line strong{color:#e0ff83;font-size:12px;letter-spacing:2px}
+body.in-game #copy{padding:4px 7px;min-height:22px;border:0;font-size:9px;border-radius:10px;background:#1e3e3e}
+.table-hud-actions{display:none}
+body.in-game .table-hud-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+body.in-game .hud-button{width:36px;height:34px;display:grid;place-items:center;background:#081d28d9;border:1px solid #bedbc33b;border-radius:11px;color:#eef9e8;font-size:21px;line-height:1;box-shadow:0 3px 8px #0003}
+body.in-game .hud-button:hover{background:#275647}
+body.in-game .room-tools{display:none;position:absolute;right:0;top:40px;min-width:178px;max-width:230px;padding:10px;flex-direction:column;align-items:stretch;background:#0c202af5;border:1px solid #6c9f80;border-radius:14px;box-shadow:0 12px 35px #0009;gap:7px}
+body.in-game.game-menu-open .room-tools{display:flex}
+body.in-game .room-tools .small-button{width:100%;min-height:40px;padding:10px 14px;font-size:12px;border-radius:8px;text-align:left;background:#173139;border:1px solid #486758}
+body.in-game .arena{position:absolute;inset:43px 10% 15%;width:auto;height:auto;min-height:0;max-width:none;margin:0}
+body.in-game .felt{inset:9% 0 3%;border:6px solid #659665;border-radius:50%;background:radial-gradient(ellipse at 50% 34%,#238b5b,#106244 65%,#064334);box-shadow:0 5px 0 #2c5141,0 18px 38px #00191c99,inset 0 0 35px #002c3070}
+body.in-game .felt:after{inset:9px;border:1px dashed #c8e4a047}
+body.in-game .table-orbit{inset:19px;border-color:#d4f7ce12}
+body.in-game .table-wordmark{top:41%;font-size:clamp(44px,8vw,105px);color:#c5eeca12;letter-spacing:2px}
+body.in-game .table-center{position:absolute;display:block;left:50%;top:44%;width:calc(var(--pile-h)*.68);height:var(--pile-h);gap:0;transform:translate(-50%,-50%);z-index:3}
+body.in-game .pile{gap:0;display:block;position:relative}
+body.in-game .pile-label{display:none}
+body.in-game .table-center .card{width:calc(var(--pile-h)*.68);height:var(--pile-h);border:4px solid #fffbea;border-radius:12px;font-size:calc(var(--pile-h)*.54);box-shadow:0 5px 0 #00292788,0 10px 18px #002b2c88}
+body.in-game .table-center .card.special-card{font-size:calc(var(--pile-h)*.25)}
+body.in-game .table-center .back{font-size:calc(var(--pile-h)*.3);background:#102c2d}
+body.in-game .table-center .card:after,body.in-game .table-center .card-corner{font-size:calc(var(--pile-h)*.13)}
+body.in-game .table-center .card-description{font-size:clamp(6px,1vw,9px);bottom:calc(var(--pile-h)*.16);padding:2px}
+body.in-game .draw-pile{position:absolute;left:calc(var(--pile-h)*-1.08);top:-22%;transform:rotate(-14deg) scale(.77);transform-origin:50% 50%}
+body.in-game .draw-pile:after{content:'DRAW';display:block;text-align:center;font:800 10px 'DM Sans',sans-serif;color:#def0d3;padding:7px 0 0;letter-spacing:1px}
+body.in-game .discard-pile{isolation:isolate;transform:rotate(-7deg)}
+body.in-game .discard-pile:before,body.in-game .discard-pile:after{content:'';position:absolute;inset:0;z-index:-1;background:#174d38;border:3px solid #fffbea;border-radius:12px;transform:rotate(11deg);box-shadow:0 3px 8px #001e2455}
+body.in-game .discard-pile:after{transform:rotate(-9deg);background:#32774a}
+body.in-game .direction{position:absolute;left:calc(100% + 22px);top:26%;margin:0;font-size:29px;color:#dfff77;line-height:1}
+body.in-game .active-color{position:absolute;left:50%;top:calc(100% + 14px);transform:translateX(-50%);max-width:none;display:flex;gap:5px;white-space:nowrap;padding:4px 9px;font-size:10px;border:1px solid #b0d99955;border-radius:20px;background:#07372fe8;color:#efffe7;line-height:1.3}
+body.in-game .active-color i{width:9px;height:9px;border-width:1px;flex-shrink:0}
+body.in-game .players{z-index:4}
+body.in-game .player{min-width:56px;gap:3px;transform:translate(-50%,-50%)}
+body.in-game .player.self{display:none}
+body.in-game .player .avatar{width:40px;height:40px;border:3px solid #eaffd7;border-radius:13px;font-size:27px;box-shadow:0 3px 0 #001f2370}
+body.in-game .player-name{max-width:98px;padding:3px 8px;border:1px solid #b6deb64a;background:#07362fe8;color:#fffde7;border-radius:10px;font-size:10px;line-height:1.1}
+body.in-game .player-count{max-width:95px;background:#071e2ae0;padding:3px 6px;font-size:8px;line-height:1.1;color:#e4f2d8;border-radius:10px}
+body.in-game .player.current .avatar{border-color:#e2ff70;box-shadow:0 0 0 3px #e2ff7036,0 0 20px #c8ed6a55}
+body.in-game .player.current:after{content:'▶';position:absolute;left:-13px;top:12px;color:#e2ff70;font-size:16px;text-shadow:0 2px #1c3f35}
+body.in-game .opponent-hand{position:absolute;left:calc(100% + 5px);top:6px;display:flex;pointer-events:none}
+body.in-game .opponent-hand span{display:grid;place-items:center;width:20px;height:33px;margin-left:-10px;border:2px solid #f5f6df;border-radius:4px;background:linear-gradient(135deg,#101d24 32%,#b93138 33% 69%,#101d24 70%);color:#ffda62;font:800 italic 8px 'DM Sans',sans-serif;transform:rotate(var(--mini-angle));transform-origin:50% 100%;box-shadow:0 2px 4px #00232788}
+body.in-game .opponent-hand span:first-child{margin-left:0}
+body.in-game .player.seat-right .opponent-hand{left:auto;right:calc(100% + 5px)}
+body.in-game .waiting{top:42%;width:72%;z-index:5}
+body.in-game .waiting .eyebrow{font-size:8px;color:#d5efab}
+body.in-game .waiting h2{font-size:clamp(25px,4.5vw,45px);margin:8px 0}
+body.in-game .waiting p{font-size:11px;margin:6px 0}
+body.in-game .waiting .primary{min-height:38px;font-size:12px;padding:8px 18px;margin-top:8px}
+body.in-game .hand-zone{position:absolute;left:0;right:0;bottom:0;height:calc(var(--hand-h) + 35px);max-width:none;min-width:0;margin:0;padding:0;display:block;border:0;border-radius:0;box-shadow:none;background:linear-gradient(0deg,#041521eb,transparent 87%);z-index:6}
+body.in-game .hand{position:absolute;left:88px;right:106px;bottom:0;width:auto;height:100%;max-width:none;min-width:0;min-height:0;grid-area:auto;margin:0;padding:24px 18px 7px;display:flex;align-items:flex-end;justify-content:safe center;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#73946b #061a2222;scroll-padding:20px;overscroll-behavior-x:contain}
+body.in-game .hand .card{width:calc(var(--hand-h)*.68);height:var(--hand-h);font-size:calc(var(--hand-h)*.53);border:4px solid #fffbea;border-radius:12px;margin-left:-25px;transform:rotate(var(--tilt,0deg));transform-origin:50% 115%;box-shadow:0 5px 0 #001a2880,0 9px 18px #001525b3;transition:transform .16s,box-shadow .16s}
+body.in-game .hand .card:first-child{margin-left:0}
+body.in-game .hand .card.special-card{font-size:calc(var(--hand-h)*.24)}
+body.in-game .hand .card:after,body.in-game .hand .card-corner{font-size:calc(var(--hand-h)*.13)}
+body.in-game .hand .card.special-card:after,body.in-game .hand .card.special-card .card-corner{font-size:calc(var(--hand-h)*.10)}
+body.in-game .hand .card-description{font-size:clamp(6px,.9vw,10px);bottom:calc(var(--hand-h)*.17);padding:3px 0}
+body.in-game .hand .play-badge{width:18px;height:18px;font-size:12px;top:3px;right:4px}
+body.in-game .hand .card.playable{border-color:#edffa4;box-shadow:0 0 0 2px #a9ce4b,0 6px 18px #041d2899;z-index:1}
+body.in-game .hand .card:hover:not(:disabled),body.in-game .hand .card:focus-visible:not(:disabled){transform:translateY(-13px) rotate(0);z-index:10}
+body.in-game .hand.many{justify-content:flex-start}
+body.in-game .hand:focus-visible{outline:2px solid #dfff80;outline-offset:-3px}
+.self-badge{display:none}
+body.in-game .self-badge{position:absolute;left:12px;bottom:14px;width:72px;display:flex;align-items:center;flex-direction:column;gap:5px;z-index:8}
+body.in-game .self-badge .avatar{width:43px;height:43px;font-size:29px;border-radius:12px;border:3px solid #d0e8c5}
+body.in-game .self-badge strong{font-size:10px;max-width:77px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;background:#092630d9;padding:4px 7px;border-radius:7px;line-height:1}
+body.in-game .self-badge>span:last-child{font-size:8px;color:#d6e8d2}
+body.in-game .self-badge.my-turn .avatar{border-color:#e7ff7a;box-shadow:0 0 0 3px #e7ff7a33,0 0 20px #e7ff7a44}
+body.in-game .hand-toolbar{position:static;display:contents;grid-area:auto;padding:0}
+body.in-game .hand-toolbar .eyebrow,body.in-game .hand-help{display:none}
+body.in-game .turn{position:fixed;left:50%;top:9px;transform:translateX(-50%);max-width:46%;margin:0;padding:5px 12px;background:#061f28b3;border:1px solid #9dbaad26;border-radius:20px;font-size:11px;line-height:1.25;text-align:center;z-index:14;color:#d5e6d7}
+body.in-game .turn.your-turn{color:#e5ff8a;border-color:#c8eb623d}
+body.in-game .play-actions{position:absolute;right:12px;bottom:17px;width:84px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:9px;margin:0;z-index:10}
+body.in-game .uno-button{font-size:21px;min-height:48px;padding:10px 8px;border-radius:15px;box-shadow:0 4px 0 #87273b;transform:rotate(-5deg);color:#fffbdc;background:#dc3c4d}
+body.in-game .uno-button:disabled{opacity:.72;box-shadow:none}
+body.in-game .hand-toolbar .secondary{font-size:10px;min-height:37px;padding:8px 5px;background:#14363fd9;border:1px solid #8cae9670;border-radius:10px;line-height:1.25}
+body.in-game .game-status{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;padding:0;margin:0}
+body.in-game .round-info{display:none;position:absolute;inset:auto;left:50%;right:auto;bottom:38px;transform:translateX(-50%);width:max-content;max-width:70%;max-height:100px;margin:0;padding:8px;overflow:auto;background:#08212be8;border:1px solid #94b27966;border-radius:12px;font-size:11px;line-height:1.5;z-index:12}
+body.in-game.hand-finished .round-info{display:flex}
+body.in-game.hand-finished .play-actions{display:none}
+body.in-game .round-info .primary{min-height:39px;padding:9px 19px;font-size:12px}
+body.in-game .round-info:has(.roulette-reveal){display:flex;bottom:calc(var(--hand-h) + 8px);max-height:54px;font-size:9px}
+body.in-game .roulette-reveal{font-size:8px;gap:3px}
+body.in-game .reveal-chip{font-size:8px;padding:3px 6px}
+body.in-game .catch-buttons{position:absolute;inset:auto;right:112px;bottom:calc(var(--hand-h) + 6px);max-width:65%;margin:0;gap:6px;z-index:11}
+body.in-game .catch-button{font-size:10px;min-height:32px;padding:7px 12px;background:#513525ed;border-color:#e0c07d}
+body.in-game dialog{max-height:90dvh;overflow:auto}
+body.in-game .color-options{grid-template-columns:repeat(4,1fr);gap:8px}
+body.in-game .color-options button{padding:17px 12px;font-size:13px}
+body.in-game .target-options{grid-template-columns:1fr 1fr;gap:8px}
+body.in-game .target-options button{font-size:11px;min-height:40px;padding:10px}
+body.in-game.virtual-landscape dialog[open]{position:fixed;inset:auto;left:50vw;top:50dvh;transform:translate(-50%,-50%) rotate(90deg);transform-origin:center;margin:0;width:min(88dvh,800px);max-width:none;max-height:92vw;padding:20px}
+body.in-game.virtual-landscape dialog h2{font-size:29px;margin:10px 0}
+body.in-game.virtual-landscape #historyDialog{max-height:92vw;padding:18px 22px}
+body.in-game.virtual-landscape #historyDialog .history-note{font-size:9px!important;line-height:1.5!important}
+body.in-game.virtual-landscape .history-chart{margin:10px 0}
+body.in-game.virtual-landscape .history-chart svg{max-height:none}
+body.in-game.virtual-landscape .error{position:fixed;inset:auto;left:50vw;top:50dvh;transform:translate(-50%,-50%) rotate(90deg);width:min(70dvh,480px);max-width:none;font-size:12px}
+@media(max-height:600px){body.in-game .player .avatar{width:33px;height:33px;font-size:23px;border-radius:11px}body.in-game .player-name{font-size:8px;max-width:80px;padding:3px 6px}body.in-game .player-count{font-size:7px;max-width:80px}body.in-game .opponent-hand span{width:18px;height:29px;margin-left:-9px;font-size:7px}body.in-game .turn{font-size:10px}body.in-game .room-code-line{font-size:9px}body.in-game .room-code-line strong{font-size:11px}}
+@media(orientation:portrait) and (max-width:900px){body.in-game .player .avatar{width:33px;height:33px;font-size:23px;border-radius:11px}body.in-game .player-name{font-size:8px;max-width:80px;padding:3px 6px}body.in-game .player-count{font-size:7px;max-width:80px}body.in-game .opponent-hand span{width:18px;height:29px;margin-left:-9px;font-size:7px}body.in-game .turn{font-size:10px}body.in-game .room-code-line{font-size:9px}body.in-game .room-code-line strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){body.in-game .hand .card{transition:none}}
+
+body.in-game .turn{left:12px;top:47px;transform:none;max-width:160px;padding:5px 9px;text-align:left}
+body.in-game .active-color{left:calc(100% + 12px);top:65%;transform:none}
+
+body.in-game .arena{top:65px}
+body.in-game .turn{top:9px;left:50%;transform:translateX(-50%);max-width:36%;text-align:center}
+body.in-game .seat-top .opponent-hand{display:none}

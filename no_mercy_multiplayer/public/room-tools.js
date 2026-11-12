@@ -18,7 +18,7 @@ const RoomTools=(()=>{
  function summary(rules){const r=rules||G.defaultRules();return [G.deckSize(r)+' cards; '+r.startingCards+' dealt per player; Mercy at '+r.mercyLimit+'.','Numbers: '+r.numbers.join(', ')+'.','Action cards: '+(r.actions.map(k=>names[k]).join(', ')||'None')+'.','Wild counts: '+G.WILDS.map(k=>names[k]+' × '+r.wildCounts[k]).join('; ')+'.','Stacking '+(r.stacking?'ON':'OFF')+' · 7 swaps '+(r.swap7?'ON':'OFF')+' · 0 passes '+(r.pass0?'ON':'OFF')+'.'].join('\n');}
  function svgElement(tag,attributes={},text){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [key,value]of Object.entries(attributes))e.setAttribute(key,String(value));if(text!==undefined)e.textContent=text;return e;}
  function drawHistory(){
-  const records=current?.history||[],compact=window.matchMedia('(orientation: landscape) and (max-height: 600px)').matches,key=JSON.stringify(records)+'|'+compact;if(key===lastRendered&&$('historyChart').childNodes.length)return;lastRendered=key;
+  const records=current?.history||[],compact=TableLayout.viewport(window.innerWidth,window.innerHeight).compact,key=JSON.stringify(records)+'|'+compact;if(key===lastRendered&&$('historyChart').childNodes.length)return;lastRendered=key;
   $('historyCount').textContent=records.length?records.length+' completed hand'+(records.length===1?'':'s')+' recorded. '+(records.length===100?'Latest 100 only.':''):'Finish a hand to record its winner and points.';
   $('historyChart').replaceChildren();$('historyRows').replaceChildren();$('historyLegend').replaceChildren();$('exportHistory').disabled=!records.length;
   $('historyEmpty').classList.toggle('hidden',!!records.length);$('historyTableWrap').classList.toggle('hidden',!records.length);
@@ -37,8 +37,19 @@ const RoomTools=(()=>{
  $('historyOpen').onclick=()=>{drawHistory();$('historyDialog').showModal();};$('historyClose').onclick=()=>$('historyDialog').close();
  $('roomRules').onclick=()=>$('rules').showModal();
  $('exportHistory').onclick=()=>{const records=current?.history||[];if(!records.length)return;const quote=value=>{let s=String(value);if(/^[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};const rows=[['Hand','Winner','Points earned','Victory','Match','Completed UTC'],...records.map(r=>[r.hand,r.winner,r.points,r.reason,r.match,new Date(r.time).toISOString()])];const blob=new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='no-mercy-hand-records.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
- const fullscreen=$('fullScreen');fullscreen.hidden=!document.fullscreenEnabled;fullscreen.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{fullscreen.textContent='Rotate device';setTimeout(()=>fullscreen.textContent='Full screen',2000);}};
- document.addEventListener('fullscreenchange',()=>fullscreen.textContent=document.fullscreenElement?'Exit full screen':'Full screen');
+ function closeMenu(){document.body.classList.remove('game-menu-open');$('tableMenu').setAttribute('aria-expanded','false');}
+ async function enterFullscreen(){
+  try {
+   if(document.fullscreenElement){await document.exitFullscreen();return;}
+   if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
+   if(screen.orientation?.lock)await screen.orientation.lock('landscape');
+  } catch { /* CSS landscape view remains usable when the browser cannot lock orientation. */ }
+ }
+ const fullscreen=$('fullScreen');fullscreen.hidden=false;fullscreen.onclick=enterFullscreen;$('landscapeScreen').onclick=enterFullscreen;
+ $('tableMenu').onclick=()=>{const open=document.body.classList.toggle('game-menu-open');$('tableMenu').setAttribute('aria-expanded',String(open));};
+ document.addEventListener('click',event=>{if(!event.target.closest('#tableMenu')&&!event.target.closest('#tableActions'))closeMenu();});
+ document.querySelectorAll('#tableActions button').forEach(button=>button.addEventListener('click',closeMenu));
+ document.addEventListener('fullscreenchange',()=>{fullscreen.textContent=document.fullscreenElement?'Exit full screen':'Full screen';if(!document.fullscreenElement)screen.orientation?.unlock?.();});
  $('activeRules').textContent=summary();
  return {readRules,setState,reset(){current=null;lastRendered='';$('historyDialog').close();if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});$('activeRulesHeading').textContent='Standard rules';$('activeRules').textContent=summary();}};
 })();

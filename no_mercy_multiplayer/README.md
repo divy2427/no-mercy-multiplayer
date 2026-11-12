@@ -1,4 +1,4 @@
-# NO MERCY v1.2.0
+# NO MERCY v1.3.0
 
 Dark card-table game with mobile landscape play, custom rooms, local computer opponents and completed-hand records.
 
@@ -11,17 +11,17 @@ Dark card-table game with mobile landscape play, custom rooms, local computer op
 
 Keep the path `no_mercy_multiplayer/public/index.html`; do not create a second nested `no_mercy_multiplayer` directory.
 
-Upload the whole folder, including **server.js**, **public/engine.js**, the NEW **public/room-tools.js**, and the existing **public/fonts/** folder. Updating only the stylesheet will not enable custom online rules or history. Matching files are replaced and new files are added; no manual deletion is required.
+Upload the whole folder, including **server.js**, **public/engine.js**, **public/room-tools.js**, the NEW **public/table.css** and **public/table-layout.js**, and the existing **public/fonts/** folder. Updating only the stylesheet will not enable custom online rules or history. Matching files are replaced and new files are added; no manual deletion is required.
 
 The archive contains one README.md and a separate RULES.md. Do not restore an old README.txt.
 
 ## Mobile landscape
 
-Turn your phone sideways during a game. On short landscape screens the header and room controls become compact, the table fills the upper area, and your cards and turn controls sit together below it. Only the hand scrolls horizontally when it cannot fit.
+Gameplay fills one landscape screen: opponents around the table, discard in the center, and a large fanned hand across the bottom. Swipe the hand horizontally when you hold many cards. The small menu at the top right contains Rules, History and Leave room.
 
-Use **Full screen** if the browser supports it. Installed apps request landscape orientation; a normal browser may require manual device rotation. Portrait remains usable and shows a rotation hint.
+Turn the phone sideways to play. If auto-rotate is disabled, the game itself turns sideways so you can still hold the phone in landscape. The lobby stays upright. The fullscreen icon requests fullscreen and landscape orientation where supported; browser support varies.
 
-Tested CSS viewport sizes: 844 x 390 and 568 x 320 for landscape; 390 x 844 for portrait. These are browser viewport checks, not a physical-device certification.
+Checked at browser viewport sizes 844 x 390, 568 x 320 and 390 x 844, including eight-player seating and the sideways history dialog. These are browser checks, not physical-device testing.
 
 ## Customize a room or computer match
 

@@ -24,7 +24,7 @@ function resetRoom(message = '') {
   $('create').disabled = $('join').disabled = false;
   const previous = ws; ws = null; previous?.close();
   myId = roomCode = state = pendingCard = pendingAction = null; soloMode = false;
-  document.body.classList.remove('in-game','hand-finished'); RoomTools.reset();
+  document.body.classList.remove('in-game','hand-finished','virtual-landscape','game-menu-open'); RoomTools.reset();
   $('targetPicker').close();
   $('colorPicker').close(); $('game').classList.add('hidden'); $('lobby').classList.remove('hidden'); error(message);
 }
@@ -166,19 +166,23 @@ function decorateCard(element, card) {
 function render() {
  if (!state) return;
  RoomTools.setState(state); document.body.classList.toggle('hand-finished',state.status==='finished');
- const compact=window.matchMedia('(orientation: landscape) and (max-height: 600px)').matches;
+ const layout=TableLayout.viewport(window.innerWidth,window.innerHeight),compact=layout.compact;
+ document.body.classList.toggle('virtual-landscape',layout.virtual);
+ document.body.style.setProperty('--stage-w',layout.width+'px');document.body.style.setProperty('--stage-h',layout.height+'px');
+ document.body.style.setProperty('--hand-h',Math.max(112,Math.min(210,layout.height*.37))+'px');document.body.style.setProperty('--pile-h',Math.max(80,Math.min(160,layout.height*.29))+'px');
  const me=state.players.find(p=>p.id===myId),playing=state.status==='playing',ownTurn=connectionReady&&playing&&state.currentPlayerId===myId&&!me?.eliminated;
  if (!ownTurn) { $('colorPicker').close(); $('targetPicker').close(); }
  const myIndex=state.players.findIndex(p=>p.id===myId),ordered=[...state.players.slice(myIndex),...state.players.slice(0,myIndex)];
  $('players').replaceChildren();
  ordered.forEach((p,index)=>{
   const original=state.players.findIndex(q=>q.id===p.id),seat=document.createElement('div');seat.className='player'+(p.id===myId?' self':'')+(p.id===state.currentPlayerId?' current':'')+(!p.connected?' offline':'')+(p.eliminated?' eliminated':'');
-  const angle=index*2*Math.PI/ordered.length;seat.style.left=(50-(compact?43:42)*Math.sin(angle))+'%';seat.style.top=((compact?50:49)+(compact?34:45)*Math.cos(angle))+'%';
-  const avatar=document.createElement('span');avatar.className='avatar '+palettes[original%3];avatar.textContent=p.bot?'🤖':faces[original%faces.length];avatar.setAttribute('aria-hidden','true');
+  const point=TableLayout.seat(ordered.length,index);seat.style.left=point[0]+'%';seat.style.top=point[1]+'%';seat.classList.toggle('seat-right',point[0]>70);seat.classList.toggle('seat-top',point[1]<25);
+  const avatar=document.createElement('span');avatar.className='avatar '+palettes[original%3];avatar.textContent=faces[original%faces.length];avatar.setAttribute('aria-hidden','true');
   const name=document.createElement('span');name.className='player-name';name.textContent=p.name+(p.id===myId?' · You':'')+(p.id===state.hostId?' ♛':'');
   const count=document.createElement('span');count.className='player-count';count.textContent=p.eliminated?'OUT · Mercy':!p.connected?'Disconnected':state.status==='lobby'?'Ready to play':p.count+(p.count===1?' card':' cards')+(p.unoDeclared&&p.count===1?' · UNO!':'')+(state.scoreMode?' · '+p.score+' pts':'');
-  seat.append(avatar,name,count);$('players').append(seat);
+  seat.append(avatar,name,count);if(p.id!==myId&&state.status!=='lobby'&&!p.eliminated){const backs=document.createElement('div');backs.className='opponent-hand';backs.setAttribute('aria-hidden','true');for(let n=0;n<Math.min(p.count,5);n++){const back=document.createElement('span');back.textContent='NM';back.style.setProperty('--mini-angle',((n-(Math.min(p.count,5)-1)/2)*7)+'deg');backs.append(back);}seat.append(backs);}$('players').append(seat);
  });
+ $('selfName').textContent=me?.name||'You';$('selfCount').textContent=me?.eliminated?'Out · Mercy':(me?.count||0)+' cards'+(me?.unoDeclared&&me?.count===1?' · UNO!':'');$('selfBadge').classList.toggle('my-turn',ownTurn);
  const canStart=state.hostId===myId&&(state.status==='lobby'||state.status==='finished');
  $('start').classList.toggle('hidden',!canStart||state.status==='finished');
  $('start').disabled=!connectionReady||state.players.length<2;
@@ -189,7 +193,7 @@ function render() {
  $('turn').textContent=state.status==='lobby'?'Your cards will appear here':state.status==='finished'?(state.matchWinner?state.matchWinner+' wins the match!':state.winner+' wins the hand!'):me?.eliminated?'Mercy! You are out. Watch the rest of the hand.':ownTurn?(state.choice?'Choose a color for roulette':state.forcedCardId?'Play the card you just drew':state.pendingDraw?(state.rules.stacking?'Stack +'+state.stackMin+' or higher, or take +'+state.pendingDraw:'Take +'+state.pendingDraw+' · stacking is off'):'Your turn. Make it count.'):(state.players.find(p=>p.id===state.currentPlayerId)?.name||'Another player')+'’s turn';
  $('turn').classList.toggle('your-turn',ownTurn);
  decorateCard($('topcard'),state.top);
- $('active').textContent=state.choice?'COLOR ROULETTE':state.activeColor?state.activeColor+' to play':'Waiting to deal';
+ $('active').textContent=state.choice?'COLOR ROULETTE':state.activeColor?state.activeColor:'Waiting to deal';
  $('colorDot').style.background=colors.includes(state.activeColor)?'var(--'+state.activeColor+')':'var(--lime)';
  $('direction').textContent=state.direction===1?'↻':'↺';$('direction').setAttribute('aria-label',state.direction===1?'Clockwise':'Counterclockwise');
  $('draw').disabled=$('deck').disabled=!connectionReady||!state.canDraw;
@@ -205,7 +209,7 @@ function render() {
  $('catchButtons').replaceChildren();
  if(connectionReady&&playing&&!me?.eliminated)state.players.filter(p=>p.id!==myId&&state.unoVulnerable?.includes(p.id)).forEach(p=>{const b=document.createElement('button');b.className='catch-button';b.textContent='Catch '+p.name+' · no UNO!';b.onclick=()=>send({type:'catchUno',targetId:p.id});$('catchButtons').append(b);});
  $('hand').replaceChildren();$('hand').classList.toggle('many',state.hand.length>(window.innerWidth<721?8:12));
- state.hand.forEach((card,index)=>{const b=document.createElement('button');decorateCard(b,card);const playable=ownTurn&&state.playableCardIds.includes(card.id);b.disabled=!playable;b.classList.toggle('playable',playable);if(playable){const badge=document.createElement('span');badge.className='play-badge';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);}b.classList.toggle('special-card',label(card).length>2);b.setAttribute('aria-label','Play '+card.color+' '+card.value);b.title=card.color+' '+card.value;b.setAttribute('aria-describedby','handHelp');b.style.setProperty('--tilt',Math.max(compact?-2:-10,Math.min(compact?2:10,(index-(state.hand.length-1)/2)*2))+'deg');b.onclick=()=>requestPlay(card);$('hand').append(b);});
+ state.hand.forEach((card,index)=>{const b=document.createElement('button');decorateCard(b,card);const playable=ownTurn&&state.playableCardIds.includes(card.id);b.disabled=!playable;b.classList.toggle('playable',playable);if(playable){const badge=document.createElement('span');badge.className='play-badge';badge.textContent='✓';badge.setAttribute('aria-hidden','true');b.append(badge);}b.classList.toggle('special-card',label(card).length>2);b.setAttribute('aria-label','Play '+card.color+' '+card.value);b.title=card.color+' '+card.value;b.setAttribute('aria-describedby','handHelp');b.style.setProperty('--tilt',TableLayout.fan(state.hand.length,index)+'deg');b.onclick=()=>requestPlay(card);$('hand').append(b);});
  if(ownTurn&&state.choice?.type==='roulette'&&!$('colorPicker').open){pendingAction=null;$('colorPicker').querySelector('h2').textContent='Roulette: choose a color.';$('cancelColor').classList.add('hidden');$('colorPicker').showModal();}
 }
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
