@@ -115,13 +115,18 @@ body.in-game .arena{top:65px}
 body.in-game .turn{top:9px;left:50%;transform:translateX(-50%);max-width:36%;text-align:center}
 body.in-game .seat-top .opponent-hand{display:none}
 
-/* Every card has its own visible, tappable cell; no horizontal hand scrolling. */
+
+/* Sorted overlapping fans: every top-left label stays exposed. */
 body.in-game .hand-zone{height:var(--hand-area-h)}
-body.in-game .hand{left:88px;right:106px;height:100%;padding:6px;display:grid;grid-template-columns:repeat(var(--fit-columns),var(--fit-card-w));grid-template-rows:repeat(var(--fit-rows),var(--fit-card-h));gap:4px;align-content:end;justify-content:center;overflow:hidden}
-body.in-game .hand .card{width:var(--fit-card-w);height:var(--fit-card-h);margin:0!important;transform:none!important;min-width:0;min-height:0;border-width:2px;border-radius:7px;font-size:calc(var(--fit-card-h)*.48);box-shadow:0 3px 8px #00152599}
+body.in-game .hand{left:88px;right:106px;height:100%;padding:0;display:block;overflow:visible}
+body.in-game .hand .card{position:absolute;width:var(--fit-card-w);height:var(--fit-card-h);margin:0!important;transform:rotate(var(--tilt));transform-origin:50% 100%;min-width:0;min-height:0;border-width:3px;border-radius:9px;font-size:calc(var(--fit-card-h)*.48);box-shadow:-3px 2px 7px #00152577;transition:transform .15s,filter .15s}
 body.in-game .hand .card.special-card{font-size:calc(var(--fit-card-h)*.23)}
-body.in-game .hand .card:after,body.in-game .hand .card-corner{font-size:calc(var(--fit-card-h)*.13)}
-body.in-game .hand .card.special-card:after,body.in-game .hand .card.special-card .card-corner{font-size:calc(var(--fit-card-h)*.10)}
-body.in-game .hand .card-description{font-size:clamp(4px,calc(var(--fit-card-h)*.058),9px);bottom:calc(var(--fit-card-h)*.17);left:1px;right:1px;padding:2px 0;letter-spacing:0}
-body.in-game .hand .play-badge{width:clamp(9px,calc(var(--fit-card-h)*.12),18px);height:clamp(9px,calc(var(--fit-card-h)*.12),18px);font-size:clamp(7px,calc(var(--fit-card-h)*.09),12px);top:2px;right:2px}
+body.in-game .hand .card:after,body.in-game .hand .card-corner{font-size:clamp(10px,calc(var(--fit-card-h)*.14),22px)}
+body.in-game .hand .card.special-card:after,body.in-game .hand .card.special-card .card-corner{font-size:clamp(7px,calc(var(--fit-card-h)*.10),15px)}
+body.in-game .hand .card-corner{top:6px;left:5px}
+body.in-game .hand .card-description{font-size:clamp(4px,calc(var(--fit-card-h)*.055),9px);bottom:calc(var(--fit-card-h)*.17);left:1px;right:1px;padding:2px 0;letter-spacing:0}
+body.in-game .hand .play-badge{right:auto;left:3px;top:28%;width:12px;height:12px;font-size:9px}
+body.in-game .hand .card.playable{border-color:#e6ff99}
+body.in-game .hand .card:hover:not(:disabled),body.in-game .hand .card:focus-visible:not(:disabled){transform:translateY(-12px) rotate(var(--tilt));filter:brightness(1.08);z-index:100!important}
 body.in-game .hand .card:focus-visible{outline:2px solid #fff;outline-offset:1px}
+body.in-game.hand-finished .round-info{bottom:calc(var(--hand-area-h) + 6px);max-height:55px}
