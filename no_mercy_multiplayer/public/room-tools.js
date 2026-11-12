@@ -36,7 +36,7 @@ const RoomTools=(()=>{
  function setState(state){current=state;$('historyOpen').textContent='History · '+(state.history?.length||0);$('activeRules').textContent=summary(state.rules);$('activeRulesHeading').textContent='This room’s rules';if($('historyDialog').open)drawHistory();}
  $('historyOpen').onclick=()=>{drawHistory();$('historyDialog').showModal();};$('historyClose').onclick=()=>$('historyDialog').close();
  $('roomRules').onclick=()=>$('rules').showModal();
- $('exportHistory').onclick=()=>{const records=current?.history||[];if(!records.length)return;const quote=value=>{let s=String(value);if(/^[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};const rows=[['Hand','Winner','Points earned','Victory','Match','Completed UTC'],...records.map(r=>[r.hand,r.winner,r.points,r.reason,r.match,new Date(r.time).toISOString()])];const blob=new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='no-mercy-hand-records.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+ $('exportHistory').onclick=()=>{const records=current?.history||[];if(!records.length)return;const blob=new Blob([HandCsv.records(records)],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='no-mercy-hand-records.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  function closeMenu(){document.body.classList.remove('game-menu-open');$('tableMenu').setAttribute('aria-expanded','false');}
  async function enterFullscreen(){
   try {

@@ -1,4 +1,4 @@
-# NO MERCY v1.3.2
+# NO MERCY v1.4.0
 
 Dark card-table game with mobile landscape play, custom rooms, local computer opponents and completed-hand records.
 
@@ -71,22 +71,19 @@ From `no_mercy_multiplayer/`:
 
 Open http://localhost:3000. Do not open index.html directly. No new npm dependencies or API keys are required for this release.
 
-## Validation
+## Review fixes and validation
 
-- 28 directed rules, customization and history tests.
-- 77 complete computer simulations covering standard and custom decks, with card conservation checked after each action.
-- Standard online games with two and eight players, including reconnecting with the same private hand and turn.
-- A custom online game: exact room settings shared with guests, three-card deal, host-only start, finished-hand record and history restored on reconnection.
-- Server-side rejection of invalid wild quantities and custom-deck capacity overflow.
-- Browser checks of settings, resetting defaults, landscape fitting, seven-card hand scrolling, portrait rotation and custom-rule play.
-- Real completed-hand chart checked against two results and a downloaded CSV.
-- Compact chart checked in a 568 x 320 viewport.
-- Cached-page reload and a new computer match with the local server stopped.
-- All 11 cached assets returned HTTP 200; syntax and whitespace checks passed.
+See QA-REPORT.md for findings, changes, evidence and remaining limits.
+
+Run `npm test` for deterministic engine, customization, history, fan-layout and review regressions. Run `npm run test:online` for real WebSocket clients against an isolated local server (the test starts and stops it automatically). No new dependencies are needed.
+
+This release clarifies Color Roulette, Discard All and scoring, including a worked 579-point example. It also adds secure random room codes, shared name validation, duplicate-name rejection, stale-action rejection and expiring disconnected seats. A replacement guest can join between completed hands. The existing card fan remains.
+
+Upload the WHOLE folder including server.js, engine.js, app.js, room-tools.js, the new hand-csv.js and sw.js. The online protocol now checks the table revision on actions; old game tabs must be closed and reopened after deployment. Do not mix old and new files.
 
 ## Record lifetime and deployment limits
 
-Online rooms and their records are stored in server memory. A server restart or deployment clears them. A browser refresh can resume an online room if it still exists.
+Online rooms and their records are stored in server memory. A server restart or deployment clears them. A browser refresh can resume an online room if it still exists and the two-minute reconnect reservation has not expired. Explicit departures release a seat immediately.
 
 Computer matches and their records belong to the current tab session. Refreshing the page or starting a different room resets them. Export the CSV before leaving or refreshing if you want to retain the records. This release does not add a database or cloud history.
 

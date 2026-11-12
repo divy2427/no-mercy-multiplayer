@@ -39,6 +39,7 @@ function scheduleReconnect(immediate = false) {
 }
 function send(message) {
   if (!connectionReady || ws?.readyState !== WebSocket.OPEN) { scheduleReconnect(true); return false; }
+  if(state&&!['create','join','leave','ping'].includes(message.type))message={...message,revision:state.revision};
   ws.send(JSON.stringify(message)); return true;
 }
 function connect() {
@@ -101,13 +102,14 @@ document.addEventListener('visibilitychange', () => {
 });
 async function enter(type) {
   if (connecting || !$('name').reportValidity()) return;
+  let name;try{name=NoMercy.playerName($('name').value);}catch(e){error(e.message);$('name').focus();return;}
   const code = $('roomInput').value.trim().toUpperCase();
   let rules; if (type === 'create') { try { rules = RoomTools.readRules(); if (soloMode && Number($('botCount').value) + 1 > NoMercy.capacity(rules)) throw Error('This deck supports only '+NoMercy.capacity(rules)+' players. Choose fewer computer opponents or add more cards.'); } catch (e) { error(e.message); return; } }
   if (type === 'join' && !/^[A-Z0-9]{6}$/.test(code)) { error('Enter the 6-character code shared by your host.'); $('roomInput').focus(); return; }
   connecting = true; $('create').disabled = $('join').disabled = true; error();
   try {
     if (!ws || ws.readyState !== WebSocket.OPEN) await connect();
-    send({ type, rules, scoreMode: $('scoreMode').checked, name: $('name').value.trim() || 'Player', code });
+    send({ type, rules, scoreMode: $('scoreMode').checked, name, code });
   } catch (e) { error(e.message); }
   finally { connecting = false; $('create').disabled = $('join').disabled = false; }
 }
@@ -205,7 +207,7 @@ function render() {
  if(state.pendingDraw){$('roundInfo').textContent=state.rules.stacking?'STACK: +'+state.pendingDraw+' · Next draw card must be +'+state.stackMin+' or higher.':'Draw '+state.pendingDraw+' cards; stacking is off.';}
  else if(state.scoreMode){$('roundInfo').textContent='First to 1000 points · '+state.players.map(p=>p.name+': '+p.score).join(' / ');}
  if(state.rouletteRevealed?.length){const reveal=document.createElement('div');reveal.className='roulette-reveal';const title=document.createElement('strong');title.textContent='Roulette revealed: ';reveal.append(title);state.rouletteRevealed.forEach((card,index)=>{const chip=document.createElement('span');chip.className='reveal-chip '+card.color;chip.textContent=card.color+' '+label(card);chip.style.animationDelay=(index*.12)+'s';reveal.append(chip);});$('roundInfo').append(reveal);}
- if(state.status==='finished'&&state.hostId===myId){const b=document.createElement('button');b.className='primary';b.textContent=state.matchWinner?'New match →':'Next hand →';b.onclick=()=>send({type:'start'});$('roundInfo').append(b);}
+ if(state.status==='finished'&&state.hostId===myId){const b=document.createElement('button');b.className='primary';b.textContent=state.matchWinner?'New match →':'Next hand →';b.disabled=!connectionReady||state.players.length<2;b.onclick=()=>send({type:'start'});$('roundInfo').append(b);}
  $('catchButtons').replaceChildren();
  if(connectionReady&&playing&&!me?.eliminated)state.players.filter(p=>p.id!==myId&&state.unoVulnerable?.includes(p.id)).forEach(p=>{const b=document.createElement('button');b.className='catch-button';b.textContent='Catch '+p.name+' · no UNO!';b.onclick=()=>send({type:'catchUno',targetId:p.id});$('catchButtons').append(b);});
  const fit=TableLayout.hand(state.hand.length,layout.width,layout.height);

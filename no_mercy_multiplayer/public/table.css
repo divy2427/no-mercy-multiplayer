@@ -130,3 +130,5 @@ body.in-game .hand .card.playable{border-color:#e6ff99}
 body.in-game .hand .card:hover:not(:disabled),body.in-game .hand .card:focus-visible:not(:disabled){transform:translateY(-12px) rotate(var(--tilt));filter:brightness(1.08);z-index:100!important}
 body.in-game .hand .card:focus-visible{outline:2px solid #fff;outline-offset:1px}
 body.in-game.hand-finished .round-info{bottom:calc(var(--hand-area-h) + 6px);max-height:55px}
+
+body.in-game.hand-finished .round-info{max-height:100px;padding:6px;overflow:auto}
